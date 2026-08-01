@@ -6,42 +6,33 @@ set -e
 CT_ID=$(pvesh get /cluster/nextid)
 CT_NAME="gestione-casa"
 STORAGE="local-lvm"
-TEMPLATE_STORAGE="local"
-RAM=1024
-DISK=8
+TEMPLATE_NAME="debian-12-standard_12.2-1_amd64.tar.zst"
+TEMPLATE_PATH="/var/lib/vz/template/cache/$TEMPLATE_NAME"
 
 echo "🚀 Avvio creazione automatica LXC Container (ID: $CT_ID) su Proxmox VE..."
 
-# 1. Download Debian 12 Template se non presente
-TEMPLATE="debian-12-standard_12.2-1_amd64.tar.zst"
-if ! pveam list $TEMPLATE_STORAGE | grep -q "$TEMPLATE"; then
-  echo "📥 Download del template Debian 12..."
-  pveam download $TEMPLATE_STORAGE $TEMPLATE || true
+# Download diretto del template Debian 12 ufficiale Proxmox
+if [ ! -f "$TEMPLATE_PATH" ]; then
+  echo "📥 Download del template ufficiale Debian 12 in corso..."
+  wget -O "$TEMPLATE_PATH" "http://download.proxmox.com/images/system/$TEMPLATE_NAME" || \
+  wget -O "$TEMPLATE_PATH" "http://download.proxmox.com/images/system/debian-12-standard_12.7-1_amd64.tar.zst"
 fi
 
-# Trova il percorso esatto del template scaricato
-OSTEMPLATE=$(pveam list $TEMPLATE_STORAGE | grep debian-12 | awk '{print $2}' | head -n 1)
-
-if [ -z "$OSTEMPLATE" ]; then
-  # Fallback a qualsiasi template debian/ubuntu presente
-  OSTEMPLATE=$(pveam list $TEMPLATE_STORAGE | grep -E "debian|ubuntu" | awk '{print $2}' | head -n 1)
-fi
-
-echo "📦 Creazione LXC Container $CT_ID ($CT_NAME)..."
-pct create $CT_ID $TEMPLATE_STORAGE:vztmpl/$(basename $OSTEMPLATE) \
+echo "📦 Creazione LXC Container ID $CT_ID ($CT_NAME)..."
+pct create $CT_ID local:vztmpl/$(basename "$TEMPLATE_PATH") \
   --ostype debian \
   --hostname $CT_NAME \
   --cores 2 \
-  --memory $RAM \
+  --memory 1024 \
   --swap 512 \
   --features nesting=1 \
   --net0 name=eth0,bridge=vmbr0,ip=dhcp \
   --storage $STORAGE \
-  --rootfs $STORAGE:$DISK \
+  --rootfs $STORAGE:8 \
   --onboot 1 \
   --unprivileged 1
 
-echo "⚡ Avvio del container $CT_ID..."
+echo "⚡ Avvio del container ID $CT_ID..."
 pct start $CT_ID
 
 sleep 5
@@ -54,7 +45,7 @@ pct exec $CT_ID -- bash -c "
   
   git clone https://github.com/Impiantipuleo/gestione-casa.git /opt/gestione-casa
   cd /opt/gestione-casa
-  npm ci
+  npm install --legacy-peer-deps
   npm run build
   
   cp -r dist/* /var/www/html/
