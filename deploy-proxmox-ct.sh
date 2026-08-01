@@ -6,20 +6,32 @@ set -e
 CT_ID=$(pvesh get /cluster/nextid)
 CT_NAME="gestione-casa"
 STORAGE="local-lvm"
-TEMPLATE_NAME="debian-12-standard_12.2-1_amd64.tar.zst"
-TEMPLATE_PATH="/var/lib/vz/template/cache/$TEMPLATE_NAME"
 
 echo "🚀 Avvio creazione automatica LXC Container (ID: $CT_ID) su Proxmox VE..."
 
-# Download diretto del template Debian 12 ufficiale Proxmox
-if [ ! -f "$TEMPLATE_PATH" ]; then
-  echo "📥 Download del template ufficiale Debian 12 in corso..."
-  wget -O "$TEMPLATE_PATH" "http://download.proxmox.com/images/system/$TEMPLATE_NAME" || \
-  wget -O "$TEMPLATE_PATH" "http://download.proxmox.com/images/system/debian-12-standard_12.7-1_amd64.tar.zst"
+# Update pveam template database
+pveam update || true
+
+# Find debian-12 template or fallback
+TEMPLATE_NAME=$(pveam available --section system | grep debian-12 | awk '{print $2}' | tail -n 1)
+
+if [ -z "$TEMPLATE_NAME" ]; then
+  TEMPLATE_NAME="debian-12-standard_12.7-1_amd64.tar.zst"
+fi
+
+echo "📥 Download del template Proxmox ($TEMPLATE_NAME)..."
+pveam download local "$TEMPLATE_NAME" || true
+
+TEMPLATE_FILE=$(ls /var/lib/vz/template/cache/debian-12* 2>/dev/null | head -n 1)
+
+if [ -z "$TEMPLATE_FILE" ]; then
+  echo "📥 Download diretto del template Debian 12..."
+  wget -O "/var/lib/vz/template/cache/debian-12-standard_12.7-1_amd64.tar.zst" "http://download.proxmox.com/images/system/debian-12-standard_12.7-1_amd64.tar.zst"
+  TEMPLATE_FILE="/var/lib/vz/template/cache/debian-12-standard_12.7-1_amd64.tar.zst"
 fi
 
 echo "📦 Creazione LXC Container ID $CT_ID ($CT_NAME)..."
-pct create $CT_ID local:vztmpl/$(basename "$TEMPLATE_PATH") \
+pct create $CT_ID "local:vztmpl/$(basename "$TEMPLATE_FILE")" \
   --ostype debian \
   --hostname $CT_NAME \
   --cores 2 \
