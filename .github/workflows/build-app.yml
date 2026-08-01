@@ -69,13 +69,13 @@ jobs:
       - name: 🔄 Sync Capacitor iOS Project
         run: npx cap sync ios
 
-      - name: 🍏 Build Xcode Simulator App
+      - name: 🍏 Build Xcode iPhoneOS App
         run: |
           cd ios/App
           xcodebuild build \
             -project App.xcodeproj \
             -scheme App \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'generic/platform=iOS' \
             -configuration Debug \
             -derivedDataPath ./DerivedData \
             CODE_SIGNING_ALLOWED=NO \
@@ -85,7 +85,7 @@ jobs:
         run: |
           cd ios/App
           mkdir -p Payload
-          cp -r ./DerivedData/Build/Products/Debug-iphonesimulator/App.app Payload/
+          cp -r ./DerivedData/Build/Products/Debug-iphoneos/App.app Payload/
           PROVISION_CONTENT='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>AppIDName</key><string>GestioneCasa</string><key>ApplicationIdentifierPrefix</key><array><string>SELF</string></array><key>CreationDate</key><date>2026-08-01T00:00:00Z</date><key>Name</key><string>GestioneCasa Provisioning Profile</string><key>Entitlements</key><dict><key>application-identifier</key><string>SELF.com.gestionecasa.app</string><key>get-task-allow</key><true/></dict><key>ProvisionedDevices</key><array><string>00008030-0000000000000000</string></array><key>TimeToLive</key><integer>365</integer></dict></plist>'
           echo "$PROVISION_CONTENT" > Payload/App.app/embedded.mobileprovision
           zip -r GestioneCasa-iOS.ipa Payload
