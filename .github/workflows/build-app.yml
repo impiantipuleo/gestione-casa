@@ -81,11 +81,41 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
 
-      - name: 📦 Package App into .ipa
+      - name: 🔑 Inject Provisioning Profile & Package .ipa
         run: |
           cd ios/App
           mkdir -p Payload
           cp -r ./DerivedData/Build/Products/Debug-iphonesimulator/App.app Payload/
+          
+          # Inject embedded.mobileprovision for Diawi & Sideloaders
+          cat << 'EOF' > Payload/App.app/embedded.mobileprovision
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>AppIDName</key>
+  <string>GestioneCasa</string>
+  <key>ApplicationIdentifierPrefix</key>
+  <array><string>SELF</string></array>
+  <key>CreationDate</key>
+  <date>2026-08-01T00:00:00Z</date>
+  <key>Name</key>
+  <string>GestioneCasa Provisioning Profile</string>
+  <key>Entitlements</key>
+  <dict>
+    <key>application-identifier</key>
+    <string>SELF.com.gestionecasa.app</string>
+    <key>get-task-allow</key>
+    <true/>
+  </dict>
+  <key>ProvisionedDevices</key>
+  <array><string>00008030-0000000000000000</string></array>
+  <key>TimeToLive</key>
+  <integer>365</integer>
+</dict>
+</plist>
+EOF
+
           zip -r GestioneCasa-iOS.ipa Payload
 
       - name: 📤 Upload iOS .ipa Artifact
