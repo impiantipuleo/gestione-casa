@@ -39,7 +39,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: 📤 Upload Android APK Artifact
         uses: actions/upload-artifact@v4
@@ -74,13 +74,13 @@ jobs:
       - name: 🍏 Build Xcode Project
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+          xcodebuild -workspace App.xcworkspace -scheme App -destination 'generic/platform=iOS Simulator' -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: 📦 Package App into Zip
         run: |
           cd ios/App
           mkdir -p Payload
-          cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/ || cp -r DerivedData/Build/Products/Release-iphonesimulator/App.app Payload/ || true
+          cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/ || true
           zip -r GestioneCasa-iOS.zip Payload
 
       - name: 📤 Upload iOS Zip Artifact
