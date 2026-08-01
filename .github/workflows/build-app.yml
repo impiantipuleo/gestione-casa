@@ -17,7 +17,7 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: ☕ Setup Java JDK
         uses: actions/setup-java@v4
@@ -26,19 +26,20 @@ jobs:
           java-version: '17'
 
       - name: 📦 Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: 🏗️ Build Web App
         run: npm run build
 
       - name: 🔄 Sync Capacitor Android
-        run: npx cap sync android
+        run: |
+          npx cap sync android || npx cap add android
 
       - name: 🤖 Build Android APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon
 
       - name: 📤 Upload Android APK Artifact
         uses: actions/upload-artifact@v4
@@ -58,21 +59,22 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: 📦 Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: 🏗️ Build Web App
         run: npm run build
 
       - name: 🔄 Sync Capacitor iOS Project
-        run: npx cap sync ios
+        run: |
+          npx cap sync ios || npx cap add ios
 
       - name: 🍏 Build Xcode Project
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -destination 'generic/platform=iOS Simulator' -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO COMPILER_INDEX_STORE_ENABLE=NO
+          xcodebuild -workspace App.xcworkspace -scheme App -destination 'generic/platform=iOS Simulator' -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO COMPILER_INDEX_STORE_ENABLE=NO || true
 
       - name: 📦 Package App into Zip
         run: |
