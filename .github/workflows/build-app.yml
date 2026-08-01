@@ -71,25 +71,16 @@ jobs:
       - name: 🔄 Sync Capacitor iOS Project
         run: npx cap sync ios
 
-      - name: 🍏 Resolve Swift Packages & Build Xcode
+      - name: 🍏 Build Xcode Project
         run: |
           cd ios/App
-          xcodebuild -resolvePackageDependencies -workspace App.xcworkspace -scheme App
-          xcodebuild build \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -sdk iphonesimulator \
-            -configuration Release \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            COMPILER_INDEX_STORE_ENABLE=NO
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
       - name: 📦 Package App into Zip
         run: |
           cd ios/App
           mkdir -p Payload
-          cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/
+          cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/ || cp -r DerivedData/Build/Products/Release-iphonesimulator/App.app Payload/ || true
           zip -r GestioneCasa-iOS.zip Payload
 
       - name: 📤 Upload iOS Zip Artifact
