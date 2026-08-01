@@ -8,7 +8,7 @@ on:
 jobs:
   build-ios:
     name: Build iOS App (.ipa)
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: 📥 Checkout Repository
@@ -29,10 +29,21 @@ jobs:
       - name: 🔄 Sync Capacitor iOS Project
         run: npx cap sync ios
 
-      - name: 🍏 Build iOS Application Binary
+      - name: 🍏 Build Xcode Simulator App
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator -configuration Release -derivedDataPath build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          xcodebuild build \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: 📦 Package App into .ipa
+        run: |
+          cd ios/App
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/
           zip -r GestioneCasa-iOS.ipa Payload
