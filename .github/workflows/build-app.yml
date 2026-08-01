@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: 📦 Install Dependencies
         run: npm install --legacy-peer-deps
@@ -32,8 +32,7 @@ jobs:
         run: npm run build
 
       - name: 🔄 Sync Capacitor Android
-        run: |
-          npx cap sync android || npx cap add android
+        run: npx cap sync android
 
       - name: 🤖 Build Android APK
         run: |
@@ -68,8 +67,7 @@ jobs:
         run: npm run build
 
       - name: 🔄 Sync Capacitor iOS Project
-        run: |
-          npx cap sync ios || npx cap add ios
+        run: npx cap sync ios
 
       - name: 🍏 Build Xcode Project
         run: |
