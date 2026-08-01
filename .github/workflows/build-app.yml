@@ -48,7 +48,7 @@ jobs:
           retention-days: 30
 
   build-ios:
-    name: 🍏 Build iOS App
+    name: 🍏 Build iOS App (.ipa)
     runs-on: macos-14
 
     steps:
@@ -69,21 +69,28 @@ jobs:
       - name: 🔄 Sync Capacitor iOS Project
         run: npx cap sync ios
 
-      - name: 🍏 Build Xcode Project
+      - name: 🍏 Build Xcode Simulator App
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -destination 'generic/platform=iOS Simulator' -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO COMPILER_INDEX_STORE_ENABLE=NO || true
+          xcodebuild build \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            -derivedDataPath ./DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
 
-      - name: 📦 Package App into Zip
+      - name: 📦 Package App into .ipa
         run: |
           cd ios/App
           mkdir -p Payload
-          cp -r build/Build/Products/Release-iphonesimulator/App.app Payload/ || true
-          zip -r GestioneCasa-iOS.zip Payload
+          cp -r ./DerivedData/Build/Products/Debug-iphonesimulator/App.app Payload/
+          zip -r GestioneCasa-iOS.ipa Payload
 
-      - name: 📤 Upload iOS Zip Artifact
+      - name: 📤 Upload iOS .ipa Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GestioneCasa-iOS-App
-          path: ios/App/GestioneCasa-iOS.zip
+          name: GestioneCasa-iOS-IPA
+          path: ios/App/GestioneCasa-iOS.ipa
           retention-days: 30
