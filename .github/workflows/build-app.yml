@@ -86,7 +86,7 @@ jobs:
           cd ios/App
           mkdir -p Payload
           cp -r ./DerivedData/Build/Products/Debug-iphoneos/App.app Payload/
-          PROVISION_CONTENT='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>AppIDName</key><string>GestioneCasa</string><key>ApplicationIdentifierPrefix</key><array><string>SELF</string></array><key>CreationDate</key><date>2026-08-01T00:00:00Z</date><key>Name</key><string>GestioneCasa Provisioning Profile</string><key>Entitlements</key><dict><key>application-identifier</key><string>SELF.com.gestionecasa.app</string><key>get-task-allow</key><true/></dict><key>ProvisionedDevices</key><array><string>00008030-0000000000000000</string></array><key>TimeToLive</key><integer>365</integer></dict></plist>'
+          PROVISION_CONTENT='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>AppIDName</key><string>GestioneCasa</string><key>ApplicationIdentifierPrefix</key><array><string>SELF</string></array><key>CreationDate</key><date>2026-08-01T00:00:00Z</date><key>ExpirationDate</key><date>2027-08-01T00:00:00Z</date><key>Name</key><string>GestioneCasa Provisioning Profile</string><key>Entitlements</key><dict><key>application-identifier</key><string>SELF.com.gestionecasa.app</string><key>get-task-allow</key><true/></dict><key>ProvisionedDevices</key><array><string>00008030-0000000000000000</string></array><key>TimeToLive</key><integer>365</integer></dict></plist>'
           echo "$PROVISION_CONTENT" > Payload/App.app/embedded.mobileprovision
           zip -r GestioneCasa-iOS.ipa Payload
 
