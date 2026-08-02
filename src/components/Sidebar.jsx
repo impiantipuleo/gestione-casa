@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { LayoutDashboard, ShoppingCart, CheckSquare, Gift, CreditCard, Users, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, CheckSquare, Gift, CreditCard, Users, Shield, X } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   const { groceries, chores, wishlist, bills, currentUser, hasPermission } = useApp();
@@ -20,26 +20,44 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   ];
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div style={{ padding: '0 0.5rem 1.5rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 'var(--radius-sm)',
-          background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-          display: 'flex',
-          alignItems: 'center',
-          justify: 'center',
-          color: 'white',
-          fontWeight: 800
-        }}>
-          GC
+    <>
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsOpen && setIsOpen(false)}
+        />
+      )}
+
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div style={{ padding: '0 0.5rem 1.5rem 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: 'var(--radius-sm)',
+              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              display: 'flex',
+              alignItems: 'center',
+              justify: 'center',
+              color: 'white',
+              fontWeight: 800
+            }}>
+              GC
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Casa Dolce Casa</h2>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gestione Familiare</p>
+            </div>
+          </div>
+
+          <button
+            className="mobile-close-btn"
+            onClick={() => setIsOpen && setIsOpen(false)}
+            aria-label="Chiudi Menu"
+          >
+            <X size={20} />
+          </button>
         </div>
-        <div>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Casa Dolce Casa</h2>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gestione Familiare</p>
-        </div>
-      </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
         {menuItems.map(item => {
@@ -112,5 +130,6 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         </div>
       </div>
     </aside>
+  </>
   );
 };

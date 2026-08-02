@@ -8,11 +8,21 @@ const UserCard = ({ user, currentUser, permissionLabels, onSaveUser, onDeleteUse
   const [permissions, setPermissions] = useState(user.permissions || {});
   const [showSavedMsg, setShowSavedMsg] = useState(false);
 
+  const isPasswordDirty = (password || '').trim() !== (user.password || '').trim();
+  const isRoleDirty = role !== user.role;
+  const isPermsDirty = JSON.stringify(permissions) !== JSON.stringify(user.permissions || {});
+  const isDirty = isPasswordDirty || isRoleDirty || isPermsDirty;
+
+  const isDirtyRef = React.useRef(isDirty);
+  isDirtyRef.current = isDirty;
+
   useEffect(() => {
-    setPassword(user.password || '');
-    setRole(user.role || 'member');
-    setPermissions(user.permissions || {});
-  }, [user]);
+    if (!isDirtyRef.current) {
+      setPassword(user.password || '');
+      setRole(user.role || 'member');
+      setPermissions(user.permissions || {});
+    }
+  }, [user.id, user.password, user.role, user.permissions]);
 
   const handleRoleChange = (newRole) => {
     setRole(newRole);
@@ -47,10 +57,7 @@ const UserCard = ({ user, currentUser, permissionLabels, onSaveUser, onDeleteUse
     }));
   };
 
-  const isPasswordDirty = (password || '').trim() !== (user.password || '').trim();
-  const isRoleDirty = role !== user.role;
-  const isPermsDirty = JSON.stringify(permissions) !== JSON.stringify(user.permissions || {});
-  const isDirty = isPasswordDirty || isRoleDirty || isPermsDirty;
+
 
   const handleSave = (e) => {
     e.preventDefault();

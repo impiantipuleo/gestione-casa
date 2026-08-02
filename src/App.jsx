@@ -9,6 +9,7 @@ import { ChoresList } from './components/ChoresList';
 import { Wishlist } from './components/Wishlist';
 import { BillsList } from './components/BillsList';
 import { UsersManager } from './components/UsersManager';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Home, Lock, LogIn, Key, Sparkles, Clock } from 'lucide-react';
 
 const LoginScreen = () => {
@@ -192,9 +193,13 @@ const AppContent = () => {
         <Navbar
           deferredPrompt={deferredPrompt}
           onInstallPwa={handleInstallPwa}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
         />
         <main>{renderActiveTab()}</main>
       </div>
+
+      <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 };

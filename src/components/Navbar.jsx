@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Home, Moon, Sun, ChevronDown, Download, Upload, RotateCcw, Bell, Database, Cloud, LogOut, Lock } from 'lucide-react';
+import { Home, Moon, Sun, ChevronDown, Download, Upload, RotateCcw, Bell, Database, Cloud, LogOut, Lock, Menu, X } from 'lucide-react';
 import { CloudConfigModal } from './CloudConfigModal';
 import { LoginModal } from './LoginModal';
 
-export const Navbar = ({ deferredPrompt, onInstallPwa }) => {
+export const Navbar = ({ deferredPrompt, onInstallPwa, sidebarOpen, setSidebarOpen }) => {
   const {
     currentUser,
     users,
@@ -50,9 +50,19 @@ export const Navbar = ({ deferredPrompt, onInstallPwa }) => {
 
   return (
     <header className="navbar">
-      <div className="nav-title">
-        <Home size={26} color="#3b82f6" />
-        <span>Gestione Casa PWA</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setSidebarOpen && setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle Menu"
+          title="Apri Menu Navigazione"
+        >
+          {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+        <div className="nav-title">
+          <Home size={26} color="#3b82f6" />
+          <span>Gestione Casa PWA</span>
+        </div>
       </div>
 
       <div className="nav-actions">
