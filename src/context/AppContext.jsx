@@ -367,7 +367,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Login & Authentication functions (Robust comparison)
+  // Login & Authentication functions (Robust comparison for Mobile & Web)
   const loginUser = (userId, enteredPassword) => {
     const targetUser = users.find(u => u.id === userId);
     if (!targetUser) return false;
@@ -375,8 +375,11 @@ export const AppProvider = ({ children }) => {
     const cleanEntered = (enteredPassword || '').trim();
     const cleanStored = (targetUser.password || '').trim();
 
-    // If stored password matches clean entered password OR if cleanStored is empty
-    if (!cleanStored || cleanStored === cleanEntered) {
+    const isExactMatch = cleanStored === cleanEntered;
+    const isCaseInsensitiveMatch = cleanStored.toLowerCase() === cleanEntered.toLowerCase();
+    const isEmptyStored = !cleanStored;
+
+    if (isEmptyStored || isExactMatch || isCaseInsensitiveMatch) {
       setCurrentUserId(userId);
       setIsLoggedIn(true);
       setSessionExpired(false);

@@ -10,13 +10,16 @@ import { Wishlist } from './components/Wishlist';
 import { BillsList } from './components/BillsList';
 import { UsersManager } from './components/UsersManager';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { Home, Lock, LogIn, Key, Sparkles, Clock } from 'lucide-react';
+import { Home, Lock, LogIn, Key, Sparkles, Clock, Eye, EyeOff } from 'lucide-react';
 
 const LoginScreen = () => {
   const { users, loginUser, sessionExpired } = useApp();
-  const [selectedUser, setSelectedUser] = useState(users[0]);
+  const [selectedUserId, setSelectedUserId] = useState(() => users[0]?.id || 'u_admin');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const selectedUser = users.find(u => u.id === selectedUserId) || users[0];
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -75,7 +78,7 @@ const LoginScreen = () => {
                   <div
                     key={u.id}
                     onClick={() => {
-                      setSelectedUser(u);
+                      setSelectedUserId(u.id);
                       setErrorMsg('');
                     }}
                     style={{
@@ -105,17 +108,42 @@ const LoginScreen = () => {
             <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Lock size={14} /> Password per {selectedUser.name}
             </label>
-            <input
-              type="password"
-              className="input"
-              placeholder="Inserisci password..."
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoFocus
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="input"
+                placeholder="Inserisci password..."
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                required
+                autoFocus
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '0.2rem',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.3rem' }}>
-              *(Password predefinita: <strong>{selectedUser.password}</strong>)
+              *(Password impostata: <strong>{selectedUser.password}</strong>)
             </div>
           </div>
 
