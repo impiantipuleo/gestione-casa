@@ -349,6 +349,10 @@ export const GroceriesList = () => {
           </div>
         </div>
       )}
+      {/* Mobile Floating Action Button (FAB) */}
+      <button className="fab-btn" onClick={() => setShowAddModal(true)} title="Aggiungi Prodotto Spesa">
+        <Plus size={26} />
+      </button>
     </div>
   );
 };

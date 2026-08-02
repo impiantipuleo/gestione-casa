@@ -378,6 +378,12 @@ export const BillsList = () => {
           </div>
         </div>
       )}
+      {/* Mobile Floating Action Button (FAB) */}
+      {canWrite && (
+        <button className="fab-btn" onClick={() => setShowAddModal(true)} title="Registra Nuova Spesa">
+          <Plus size={26} />
+        </button>
+      )}
     </div>
   );
 };

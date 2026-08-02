@@ -294,6 +294,12 @@ export const Wishlist = () => {
           </div>
         </div>
       )}
+      {/* Mobile Floating Action Button (FAB) */}
+      {canWrite && (
+        <button className="fab-btn" onClick={() => setShowAddModal(true)} title="Aggiungi Desiderio">
+          <Plus size={26} />
+        </button>
+      )}
     </div>
   );
 };

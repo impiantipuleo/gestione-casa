@@ -341,6 +341,12 @@ export const ChoresList = () => {
           </div>
         </div>
       )}
+      {/* Mobile Floating Action Button (FAB) */}
+      {canWrite && (
+        <button className="fab-btn" onClick={() => setShowAddModal(true)} title="Nuovo Compito">
+          <Plus size={26} />
+        </button>
+      )}
     </div>
   );
 };
