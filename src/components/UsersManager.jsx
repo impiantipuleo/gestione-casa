@@ -1,9 +1,197 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Users, Plus, Shield, Check, Trash2, Lock, UserPlus, Sparkles, ShieldAlert, Key } from 'lucide-react';
+import { Users, Shield, Check, Trash2, UserPlus, ShieldAlert, Key, Save, Clock } from 'lucide-react';
+
+const UserCard = ({ user, currentUser, permissionLabels, onSaveUser, onDeleteUser }) => {
+  const [password, setPassword] = useState(user.password || '');
+  const [role, setRole] = useState(user.role || 'member');
+  const [permissions, setPermissions] = useState(user.permissions || {});
+  const [showSavedMsg, setShowSavedMsg] = useState(false);
+
+  useEffect(() => {
+    setPassword(user.password || '');
+    setRole(user.role || 'member');
+    setPermissions(user.permissions || {});
+  }, [user]);
+
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+    const isAdmin = newRole === 'admin';
+    const isKid = newRole === 'kid';
+
+    const newPerms = isAdmin
+      ? permissionLabels.reduce((acc, p) => ({ ...acc, [p.key]: true }), {})
+      : {
+          groceries_read: true,
+          groceries_write: true,
+          groceries_delete: false,
+          chores_read: true,
+          chores_write: !isKid,
+          chores_assign: false,
+          chores_delete: false,
+          wishlist_read: true,
+          wishlist_write: !isKid,
+          wishlist_delete: false,
+          bills_read: !isKid,
+          bills_write: !isKid,
+          bills_delete: false,
+          users_manage: false
+        };
+    setPermissions(newPerms);
+  };
+
+  const handleTogglePermission = (permKey) => {
+    setPermissions(prev => ({
+      ...prev,
+      [permKey]: !prev[permKey]
+    }));
+  };
+
+  const isPasswordDirty = (password || '').trim() !== (user.password || '').trim();
+  const isRoleDirty = role !== user.role;
+  const isPermsDirty = JSON.stringify(permissions) !== JSON.stringify(user.permissions || {});
+  const isDirty = isPasswordDirty || isRoleDirty || isPermsDirty;
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    onSaveUser(user.id, { password: password.trim(), role, permissions });
+    setShowSavedMsg(true);
+    setTimeout(() => {
+      setShowSavedMsg(false);
+    }, 3000);
+  };
+
+  return (
+    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div>
+        {/* User Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div className="avatar-badge" style={{ backgroundColor: user.color, width: 44, height: 44, fontSize: '1.1rem' }}>
+              {user.avatar}
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{user.name}</h3>
+              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem', alignItems: 'center' }}>
+                <span className={`badge badge-${role}`}>{role.toUpperCase()}</span>
+                {user.id === currentUser.id && (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 700 }}>[Tu]</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {user.id !== currentUser.id && (
+            <button className="btn btn-danger" onClick={() => onDeleteUser(user.id, user.name)} style={{ padding: '0.35rem 0.5rem' }}>
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Password Setting Field */}
+        <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Key size={13} color="var(--accent-primary)" /> Password Accesso:
+          </label>
+          <input
+            type="text"
+            className="input"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Imposta password..."
+            style={{ fontSize: '0.85rem' }}
+          />
+        </div>
+
+        {/* Role Selection */}
+        <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <label className="form-label">Ruolo Predefinito:</label>
+          <select
+            className="select"
+            value={role}
+            onChange={e => handleRoleChange(e.target.value)}
+            style={{ fontSize: '0.85rem' }}
+          >
+            <option value="admin">Amministratore (Tutti i permessi)</option>
+            <option value="member">Membro (Completo senza eliminazione)</option>
+            <option value="kid">Bambino / Limitato (Solo compiti & spesa)</option>
+          </select>
+        </div>
+
+        {/* Granular Permission Toggles */}
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Shield size={14} /> Permessi Granulari Attivi:
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.45rem', maxHeight: '180px', overflowY: 'auto', paddingRight: '0.4rem' }}>
+            {permissionLabels.map(p => {
+              const isChecked = role === 'admin' ? true : !!permissions[p.key];
+              const isDisabled = role === 'admin';
+
+              return (
+                <label key={p.key} className="checkbox-label" style={{ opacity: isDisabled ? 0.7 : 1 }}>
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    disabled={isDisabled}
+                    onChange={() => handleTogglePermission(p.key)}
+                    style={{ display: 'none' }}
+                  />
+                  <span className="checkbox-custom" style={{ width: 16, height: 16 }}>
+                    {isChecked && <Check size={12} color="white" />}
+                  </span>
+                  <span style={{ fontSize: '0.8rem' }}>{p.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Save Action & Feedback */}
+      <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1rem', paddingTop: '0.75rem' }}>
+        {showSavedMsg && (
+          <div style={{
+            fontSize: '0.8rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)',
+            padding: '0.4rem 0.6rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.6rem',
+            display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600
+          }}>
+            <Check size={14} /> Modifiche salvate con successo!
+          </div>
+        )}
+        <button
+          className={`btn ${isDirty ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={handleSave}
+          disabled={!isDirty}
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            fontSize: '0.85rem',
+            padding: '0.55rem',
+            opacity: !isDirty ? 0.65 : 1,
+            boxShadow: isDirty ? '0 0 12px rgba(59, 130, 246, 0.4)' : 'none'
+          }}
+        >
+          <Save size={16} />
+          <span>{isDirty ? 'Salva Modifiche' : 'Nessuna Modifica'}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const UsersManager = () => {
-  const { users, setUsers, currentUser, hasPermission, logActivity, deleteFromCloud } = useApp();
+  const {
+    users,
+    setUsers,
+    currentUser,
+    hasPermission,
+    logActivity,
+    deleteFromCloud,
+    autoLogoutMinutes,
+    setAutoLogoutMinutes
+  } = useApp();
 
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -73,57 +261,16 @@ export const UsersManager = () => {
     setShowAddModal(false);
   };
 
-  const handleUpdatePassword = (userId, newPassword) => {
+  const handleSaveUserChanges = (userId, updatedData) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
-        logActivity(`${currentUser.name} ha aggiornato la password dell'utente ${u.name}`);
-        return { ...u, password: newPassword };
-      }
-      return u;
-    }));
-  };
-
-  const handleTogglePermission = (userId, permKey) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        const updatedPerms = {
-          ...u.permissions,
-          [permKey]: !u.permissions[permKey]
+        logActivity(`${currentUser.name} ha salvato le modifiche per l'utente ${u.name}`);
+        return {
+          ...u,
+          password: updatedData.password,
+          role: updatedData.role,
+          permissions: updatedData.permissions
         };
-        logActivity(`${currentUser.name} ha aggiornato il permesso "${permKey}" per ${u.name}`);
-        return { ...u, permissions: updatedPerms };
-      }
-      return u;
-    }));
-  };
-
-  const handleChangeRole = (userId, newRole) => {
-    setUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        const isAdmin = newRole === 'admin';
-        const isKid = newRole === 'kid';
-
-        const newPerms = isAdmin
-          ? Object.keys(u.permissions).reduce((acc, k) => ({ ...acc, [k]: true }), {})
-          : {
-              groceries_read: true,
-              groceries_write: true,
-              groceries_delete: false,
-              chores_read: true,
-              chores_write: !isKid,
-              chores_assign: false,
-              chores_delete: false,
-              wishlist_read: true,
-              wishlist_write: !isKid,
-              wishlist_delete: false,
-              bills_read: !isKid,
-              bills_write: !isKid,
-              bills_delete: false,
-              users_manage: false
-            };
-
-        logActivity(`${currentUser.name} ha cambiato il ruolo di ${u.name} a "${newRole}"`);
-        return { ...u, role: newRole, permissions: newPerms };
       }
       return u;
     }));
@@ -180,96 +327,48 @@ export const UsersManager = () => {
         </button>
       </div>
 
+      {/* Inactivity Auto Logout Settings */}
+      <div className="glass-card" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+            <Clock size={20} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Disconnessione Automatica per Inattività</h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Esegue il logout automatico dopo un periodo di inattività dell'utente per sicurezza
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label className="form-label" style={{ marginBottom: 0, fontSize: '0.85rem' }}>Timeout Inattività:</label>
+          <select
+            className="select"
+            value={autoLogoutMinutes}
+            onChange={e => setAutoLogoutMinutes(Number(e.target.value))}
+            style={{ width: 'auto', fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+          >
+            <option value={5}>5 Minuti</option>
+            <option value={15}>15 Minuti (Consigliato)</option>
+            <option value={30}>30 Minuti</option>
+            <option value={60}>60 Minuti</option>
+            <option value={0}>Disattivato (Mai)</option>
+          </select>
+        </div>
+      </div>
+
       {/* Users Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {users.map(u => (
-          <div key={u.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              {/* User Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div className="avatar-badge" style={{ backgroundColor: u.color, width: 44, height: 44, fontSize: '1.1rem' }}>
-                    {u.avatar}
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{u.name}</h3>
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
-                      <span className={`badge badge-${u.role}`}>{u.role.toUpperCase()}</span>
-                      {u.id === currentUser.id && (
-                        <span style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 700 }}>[Tu]</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {u.id !== currentUser.id && (
-                  <button className="btn btn-danger" onClick={() => handleDeleteUser(u.id, u.name)} style={{ padding: '0.35rem 0.5rem' }}>
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-
-              {/* Password Setting Field */}
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Key size={13} color="var(--accent-primary)" /> Password Accesso:
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={u.password || ''}
-                  onChange={e => handleUpdatePassword(u.id, e.target.value)}
-                  placeholder="Imposta password..."
-                  style={{ fontSize: '0.85rem' }}
-                />
-              </div>
-
-              {/* Role Selection */}
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Ruolo Predefinito:</label>
-                <select
-                  className="select"
-                  value={u.role}
-                  onChange={e => handleChangeRole(u.id, e.target.value)}
-                  style={{ fontSize: '0.85rem' }}
-                >
-                  <option value="admin">Amministratore (Tutti i permessi)</option>
-                  <option value="member">Membro (Completo senza eliminazione)</option>
-                  <option value="kid">Bambino / Limitato (Solo compiti & spesa)</option>
-                </select>
-              </div>
-
-              {/* Granular Permission Toggles */}
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Shield size={14} /> Permessi Granulari Attivi:
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.45rem', maxHeight: '180px', overflowY: 'auto', paddingRight: '0.4rem' }}>
-                  {permissionLabels.map(p => {
-                    const isChecked = u.role === 'admin' ? true : !!(u.permissions && u.permissions[p.key]);
-                    const isDisabled = u.role === 'admin';
-
-                    return (
-                      <label key={p.key} className="checkbox-label" style={{ opacity: isDisabled ? 0.7 : 1 }}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          disabled={isDisabled}
-                          onChange={() => handleTogglePermission(u.id, p.key)}
-                          style={{ display: 'none' }}
-                        />
-                        <span className="checkbox-custom" style={{ width: 16, height: 16 }}>
-                          {isChecked && <Check size={12} color="white" />}
-                        </span>
-                        <span style={{ fontSize: '0.8rem' }}>{p.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
+          <UserCard
+            key={u.id}
+            user={u}
+            currentUser={currentUser}
+            permissionLabels={permissionLabels}
+            onSaveUser={handleSaveUserChanges}
+            onDeleteUser={handleDeleteUser}
+          />
         ))}
       </div>
 

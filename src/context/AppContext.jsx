@@ -59,13 +59,64 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('gc_current_user') || (users[0]?.id || 'u_admin');
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const saved = localStorage.getItem('gc_is_logged_in');
+    return saved !== null ? saved === 'true' : true;
+  });
   
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  const [autoLogoutMinutes, setAutoLogoutMinutesState] = useState(() => {
+    const saved = localStorage.getItem('gc_auto_logout_mins');
+    return saved !== undefined && saved !== null ? Number(saved) : 15;
+  });
+
+  const setAutoLogoutMinutes = (mins) => {
+    setAutoLogoutMinutesState(mins);
+    localStorage.setItem('gc_auto_logout_mins', String(mins));
+  };
+
   const [groceries, setGroceriesState] = useState(() => JSON.parse(localStorage.getItem('gc_groceries')) || INITIAL_GROCERIES);
   const [chores, setChoresState] = useState(() => JSON.parse(localStorage.getItem('gc_chores')) || INITIAL_CHORES);
   const [wishlist, setWishlistState] = useState(() => JSON.parse(localStorage.getItem('gc_wishlist')) || INITIAL_WISHLIST);
   const [bills, setBillsState] = useState(() => JSON.parse(localStorage.getItem('gc_bills')) || INITIAL_BILLS);
   const [activityLog, setActivityLog] = useState(() => JSON.parse(localStorage.getItem('gc_activity_log')) || []);
+
+  // Automatic Logout for Inactivity
+  useEffect(() => {
+    if (!isLoggedIn || autoLogoutMinutes <= 0) return;
+
+    let timer;
+    const timeoutMs = autoLogoutMinutes * 60 * 1000;
+
+    const resetInactivityTimer = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        setIsLoggedIn(false);
+        localStorage.setItem('gc_is_logged_in', 'false');
+        setSessionExpired(true);
+        logActivity(`Sessione disconnessa automaticamente dopo ${autoLogoutMinutes} minuti di inattività`);
+      }, timeoutMs);
+    };
+
+    resetInactivityTimer();
+
+    const activityEvents = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
+    const handleUserActivity = () => {
+      resetInactivityTimer();
+    };
+
+    activityEvents.forEach(event => {
+      window.addEventListener(event, handleUserActivity, { passive: true });
+    });
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [isLoggedIn, autoLogoutMinutes]);
 
   // Safe Push to Cloud
   const pushToCloud = async (tableName, dataArray) => {
@@ -328,6 +379,7 @@ export const AppProvider = ({ children }) => {
     if (!cleanStored || cleanStored === cleanEntered) {
       setCurrentUserId(userId);
       setIsLoggedIn(true);
+      setSessionExpired(false);
       localStorage.setItem('gc_current_user', userId);
       localStorage.setItem('gc_is_logged_in', 'true');
       logActivity(`${targetUser.name} ha effettuato l'accesso all'applicazione`);
@@ -538,6 +590,9 @@ export const AppProvider = ({ children }) => {
         currentUserId, setCurrentUserId,
         currentUser,
         isLoggedIn,
+        sessionExpired,
+        autoLogoutMinutes,
+        setAutoLogoutMinutes,
         loginUser,
         logoutUser,
         hasPermission,

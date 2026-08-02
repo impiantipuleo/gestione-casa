@@ -9,10 +9,10 @@ import { ChoresList } from './components/ChoresList';
 import { Wishlist } from './components/Wishlist';
 import { BillsList } from './components/BillsList';
 import { UsersManager } from './components/UsersManager';
-import { Home, Lock, LogIn, Key, Sparkles } from 'lucide-react';
+import { Home, Lock, LogIn, Key, Sparkles, Clock } from 'lucide-react';
 
 const LoginScreen = () => {
-  const { users, loginUser } = useApp();
+  const { users, loginUser, sessionExpired } = useApp();
   const [selectedUser, setSelectedUser] = useState(users[0]);
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -50,6 +50,12 @@ const LoginScreen = () => {
             Seleziona il tuo profilo ed inserisci la password
           </p>
         </div>
+
+        {sessionExpired && !errorMsg && (
+          <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+            <Clock size={16} /> Disconnessione automatica per inattività. Riconnettiti.
+          </div>
+        )}
 
         {errorMsg && (
           <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1.25rem' }}>
